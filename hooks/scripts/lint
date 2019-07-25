@@ -14,5 +14,5 @@ if [ "$AUTOHOOK_STAGED_FILES" != '' ]; then
     shellcheck "${files[@]}"
 else
     # lint everything
-    find "$AUTOHOOK_REPO_ROOT" -type f -name '*.sh' -0 | xargs shellcheck
+    find "$AUTOHOOK_REPO_ROOT" -type f -name '*.sh' -print0 | xargs shellcheck
 fi
