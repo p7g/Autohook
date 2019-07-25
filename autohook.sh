@@ -12,7 +12,7 @@ echo() {
 }
 
 echo-verbose() {
-    if [ "$VERBOSE" != '' ]; then
+    if [ "$AUTOHOOK_VERBOSE" != '' ]; then
         echo "$@"
     fi
 }
@@ -32,7 +32,7 @@ printf-error() {
 }
 
 echo-debug() {
-    if [ "$DEBUG" != '' ]; then
+    if [ "$AUTOHOOK_DEBUG" != '' ]; then
         >&2 echo "[DEBUG] $@"
     fi
 }
