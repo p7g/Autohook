@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+if ! command -v shellcheck >/dev/null 2>&1; then
+    >&2 echo 'missing shellcheck'
+    exit 1
+fi
+
+if [ "$AUTOHOOK_STAGED_FILES" != '' ]; then
+    # only lint staged files
+    files=()
+    for file in $AUTOHOOK_STAGED_FILES; do
+        files+=("$(realpath "$file")")
+    done
+    shellcheck "${files[@]}"
+else
+    # lint everything
+    find "$AUTOHOOK_REPO_ROOT" -type f -name '*.sh' -0 | xargs shellcheck
+fi
