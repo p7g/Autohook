@@ -74,6 +74,28 @@ install() {
 }
 
 
+link-script() {
+    script_name=$1
+    hook_type=$2
+    extension=$3
+
+    if [ "$script_name" == '' ] || [ "$hook_type" == '' ] || [ "$extension" == '' ]; then
+        echo-error 'Expected script name, hook type, and extension args to link'
+        return 1
+    fi
+
+    repo_dir=$(git rev-parse --show-toplevel) # git gives us an absolute path
+    script_dir="$repo_dir/hooks/scripts"
+    source_path="$script_dir/$script_name"
+    target_path="$repo_dir/hooks/$hook_type/$extension/$script_name"
+
+    mkdir -p "$(dirname $target_path)"
+
+    ln -s $source_path $target_path
+    return $?
+}
+
+
 main() {
     calling_file=$(basename $0)
     echo-debug "called by '$calling_file'"
@@ -86,6 +108,11 @@ main() {
         then
             echo-debug "installing..."
             install
+        elif [ "$command" == "link-script" ]; then
+            echo-debug 'linking script'
+            shift
+            link-script "$@"
+            exit $?
         fi
     else
         repo_root=$(git rev-parse --show-toplevel)
