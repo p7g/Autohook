@@ -11,6 +11,16 @@ echo() {
     builtin echo "[Autohook] $@";
 }
 
+printf() {
+    builtin printf "[Autohook] $@"
+}
+
+debug-print() {
+    if [ "$DEBUG" != '' ]; then
+        >&2 echo "[DEBUG] $@"
+    fi
+}
+
 
 install() {
     hook_types=(
@@ -34,24 +44,31 @@ install() {
     )
 
     repo_root=$(git rev-parse --show-toplevel)
+    debug-print "[install] found repo_root '$repo_root'"
     hooks_dir="$repo_root/.git/hooks"
+    debug-print "[install] found hooks_dir '$hooks_dir'"
     autohook_linktarget="../../hooks/autohook.sh"
     for hook_type in "${hook_types[@]}"
     do
         hook_symlink="$hooks_dir/$hook_type"
         ln -s $autohook_linktarget $hook_symlink
+        debug-print "[install] linked '$autohook_linktarget' to '$hook_symlink'"
     done
+    debug-print '[install] done'
 }
 
 
 main() {
     calling_file=$(basename $0)
+    debug-print "called by '$calling_file'"
 
     if [[ $calling_file == "autohook.sh" ]]
     then
         command=$1
+        debug-print "called by autohook.sh, command is '$command'"
         if [[ $command == "install" ]]
         then
+            debug-print "installing..."
             install
         fi
     else
