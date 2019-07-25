@@ -100,6 +100,9 @@ link-script() {
 
 
 run-symlinks() {
+    if ! [ -d "$1" ]; then
+        return
+    fi
     script_files=($(find "$1" \( -type f -o -type l \) -maxdepth 1))
     hook_type=$2
     accumulator=$3
