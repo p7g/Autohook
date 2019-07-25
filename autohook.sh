@@ -64,8 +64,7 @@ install() {
     hooks_dir="$repo_root/.git/hooks"
     echo-debug "[install] found hooks_dir '$hooks_dir'"
     autohook_linktarget="../../hooks/autohook.sh"
-    for hook_type in "${hook_types[@]}"
-    do
+    for hook_type in "${hook_types[@]}"; do
         hook_symlink="$hooks_dir/$hook_type"
         ln -s $autohook_linktarget $hook_symlink
         echo-debug "[install] linked '$autohook_linktarget' to '$hook_symlink'"
@@ -100,12 +99,10 @@ main() {
     calling_file=$(basename $0)
     echo-debug "called by '$calling_file'"
 
-    if [[ $calling_file == "autohook.sh" ]]
-    then
+    if [ $calling_file == "autohook.sh" ]; then
         command=$1
         echo-debug "called by autohook.sh, command is '$command'"
-        if [[ $command == "install" ]]
-        then
+        if [ $command == "install" ]; then
             echo-debug "installing..."
             install
         elif [ "$command" == "link-script" ]; then
@@ -139,17 +136,14 @@ main() {
                     script_files=("$symlinks_dir/$last_extension"/*)
                     number_of_symlinks="${#script_files[@]}"
                     echo-debug "[main] found $number_of_symlinks symlinks: '$script_files'"
-                    if [[ $number_of_symlinks == 1 ]]
-                    then
-                        if [[ "$(basename ${script_files[0]})" == "*" ]]
-                        then
+                    if [ $number_of_symlinks == 1 ]; then
+                        if [ "$(basename ${script_files[0]})" == "*" ]; then
                             echo-debug '[main] only script file was "*", setting number_of_symlinks to 0'
                             number_of_symlinks=0
                         fi
                     fi
                     echo-verbose "Looking for $hook_type scripts to run...found $number_of_symlinks!"
-                    if [[ $number_of_symlinks -gt 0 ]]
-                    then
+                    if [ "$number_of_symlinks" -gt 0 ]; then
                         echo-debug '[main] had symlinks, running scripts'
                         hook_exit_code=0
                         for file in "${script_files[@]}"
@@ -159,15 +153,13 @@ main() {
                             echo-debug "[main] running '$file' with staged files '$accumulator'"
                             result=$(2>&1 AUTOHOOK_HOOK_TYPE="$hook_type" AUTOHOOK_STAGED_FILES=$accumulator AUTOHOOK_REPO_ROOT="$repo_root" $file)
                             script_exit_code=$?
-                            if [[ $script_exit_code != 0 ]]
-                            then
+                            if [ "$script_exit_code" != 0 ]; then
                                 echo-debug "[main] script exited with $script_exit_code"
                                 hook_exit_code=$script_exit_code
                             fi
                             echo-verbose "FINISH $scriptname for '$last_extension' extension"
                         done
-                        if [[ $hook_exit_code != 0 ]]
-                        then
+                        if [ "$hook_exit_code" != 0 ]; then
                             echo-error "A $hook_type script yielded negative exit code $hook_exit_code"
                             printf-error "Result:\n%s\n" "$result"
                             exit $hook_exit_code
