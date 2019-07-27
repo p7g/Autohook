@@ -134,6 +134,7 @@ run_symlinks() {
         fi
     fi
     echo_verbose "Found $number_of_symlinks scripts"
+    scriptname=
     if [ "$number_of_symlinks" -gt 0 ]; then
         echo_debug '[run_symlinks] had symlinks, running scripts'
         hook_exit_code=0
@@ -151,7 +152,7 @@ run_symlinks() {
             echo_verbose "FINISH $scriptname"
         done
         if [ "$hook_exit_code" != 0 ]; then
-            echo_error "A $hook_type script yielded negative exit code $hook_exit_code"
+            echo_error "$hook_type script '$scriptname' yielded negative exit code $hook_exit_code"
             printf_error "Result:\n%s\n" "$result"
             exit $hook_exit_code
         fi
