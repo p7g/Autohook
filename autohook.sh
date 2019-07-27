@@ -42,6 +42,16 @@ echo_debug() {
 }
 
 
+repo_root() {
+    builtin echo "$(git rev-parse --show-toplevel)"
+}
+
+
+hooks_dir() {
+    builtin echo "$(repo_root)/hooks"
+}
+
+
 install() {
     hook_types=(
         "applypatch-msg"
@@ -63,7 +73,7 @@ install() {
         "update"
     )
 
-    repo_root=$(git rev-parse --show-toplevel)
+    repo_root=$(repo_root)
     echo_debug "[install] found repo_root '$repo_root'"
     hooks_dir="$repo_root/.git/hooks"
     echo_debug "[install] found hooks_dir '$hooks_dir'"
@@ -87,10 +97,9 @@ link_script() {
         return 1
     fi
 
-    repo_dir=$(git rev-parse --show-toplevel) # git gives us an absolute path
-    script_dir="$repo_dir/hooks/scripts"
+    script_dir="$(hooks_dir)/scripts"
     source_path="$script_dir/$script_name"
-    target_path="$repo_dir/hooks/$hook_type"
+    target_path="$(hooks_dir)/$hook_type"
     if [ "$extension" != '' ]; then
         target_path="$target_path/$extension"
     fi
@@ -105,6 +114,7 @@ link_script() {
 
 run_symlinks() {
     if ! [ -d "$1" ]; then
+        echo_debug "[run_symlinks] directory not found '$1'"
         return
     fi
 
@@ -116,26 +126,26 @@ run_symlinks() {
     hook_type=$2
     accumulator=$3
     number_of_symlinks="${#script_files[@]}"
-    echo_debug "[main] found $number_of_symlinks symlinks: '${script_files[*]}'"
+    echo_debug "[run_symlinks] found $number_of_symlinks symlinks: '${script_files[*]}'"
     if [ "$number_of_symlinks" -eq 1 ]; then
         if [ "$(basename "${script_files[0]}")" == "*" ]; then
-            echo_debug '[main] only script file was "*", setting number_of_symlinks to 0'
+            echo_debug '[run_symlinks] only script file was "*", setting number_of_symlinks to 0'
             number_of_symlinks=0
         fi
     fi
     echo_verbose "Found $number_of_symlinks scripts"
     if [ "$number_of_symlinks" -gt 0 ]; then
-        echo_debug '[main] had symlinks, running scripts'
+        echo_debug '[run_symlinks] had symlinks, running scripts'
         hook_exit_code=0
         for file in "${script_files[@]}"
         do
             scriptname=$(basename "$file")
             echo_verbose "BEGIN $scriptname"
-            echo_debug "[main] running '$file' with staged files '$accumulator'"
-            result=$(2>&1 AUTOHOOK_HOOK_TYPE="$hook_type" AUTOHOOK_STAGED_FILES=$accumulator AUTOHOOK_REPO_ROOT="$repo_root" $file)
+            echo_debug "[run_symlinks] running '$file' with staged files '$accumulator'"
+            result=$(2>&1 AUTOHOOK_HOOK_TYPE="$hook_type" AUTOHOOK_STAGED_FILES=$accumulator AUTOHOOK_REPO_ROOT="$(repo_root)" $file)
             script_exit_code=$?
             if [ "$script_exit_code" != 0 ]; then
-                echo_debug "[main] script exited with $script_exit_code"
+                echo_debug "[run_symlinks] script exited with $script_exit_code"
                 hook_exit_code=$script_exit_code
             fi
             echo_verbose "FINISH $scriptname"
@@ -145,6 +155,33 @@ run_symlinks() {
             printf_error "Result:\n%s\n" "$result"
             exit $hook_exit_code
         fi
+    fi
+}
+
+
+run_hook() {
+    hook_type="$1"
+    shift
+    IFS=" " read -r -a file_types <<< "$@"
+
+    if [ "$hook_type" = '' ]; then
+        echo_error '[run-hook] Missing hook type argument'
+        exit 1
+    fi
+
+    echo_debug "[run-hook] got hook type '$hook_type'"
+    echo_debug "[run-hook] got file types '${file_types[*]}'"
+
+    echo_debug "[run-hook] number of filetypes: ${#file_types[@]}"
+
+    if [ "${#file_types[@]}" -eq 0 ] || [ "${file_types[*]}" = '' ]; then
+        echo_debug "[run-hook] no file types passed, running global $hook_type scripts"
+        run_symlinks "$(hooks_dir)/$hook_type" "$hook_type"
+    else
+        echo_debug "[run-hook] running $hook_type hook for file types: ${file_types[*]}"
+        for file_type in "${file_types[@]}"; do
+            run_symlinks "$(hooks_dir)/$hook_type/$file_type" "$hook_type"
+        done
     fi
 }
 
@@ -164,11 +201,15 @@ main() {
             shift
             link_script "$@"
             exit $?
+        elif [ "$command" == "run-hook" ]; then
+            echo_debug 'running hook'
+            shift
+            run_hook "$@"
         fi
     else
-        repo_root=$(git rev-parse --show-toplevel)
+        repo_root=$(repo_root)
         hook_type=$calling_file
-        symlinks_dir="$repo_root/hooks/$hook_type"
+        symlinks_dir="$(hooks_dir)/$hook_type"
 
         echo_debug "[main] found repo root '$repo_root'"
         echo_debug "[main] hook type is '$hook_type'"
