@@ -148,13 +148,13 @@ run_symlinks() {
                 echo_debug "[run_symlinks] script exited with $script_exit_code"
                 hook_exit_code=$script_exit_code
             fi
+            if [ "$hook_exit_code" != 0 ]; then
+                echo_error "$hook_type script '$scriptname' yielded negative exit code $hook_exit_code"
+                printf_error "Result:\n%s\n" "$result"
+                exit $hook_exit_code
+            fi
             echo_verbose "FINISH $scriptname"
         done
-        if [ "$hook_exit_code" != 0 ]; then
-            echo_error "$hook_type script '$scriptname' yielded negative exit code $hook_exit_code"
-            printf_error "Result:\n%s\n" "$result"
-            exit $hook_exit_code
-        fi
     fi
 }
 
