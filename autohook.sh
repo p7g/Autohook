@@ -138,8 +138,7 @@ run_symlinks() {
     if [ "$number_of_symlinks" -gt 0 ]; then
         echo_debug '[run_symlinks] had symlinks, running scripts'
         hook_exit_code=0
-        for file in "${script_files[@]}"
-        do
+        for file in "${script_files[@]}"; do
             scriptname=$(basename "$file")
             echo_verbose "BEGIN $scriptname"
             echo_debug "[run_symlinks] running '$file' with staged files '$accumulator'"
