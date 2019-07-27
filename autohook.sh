@@ -186,26 +186,101 @@ run_hook() {
 }
 
 
+usage() {
+    cat <<USAGE
+usage: $0 [-vh] <command> [<args>]
+
+Options:
+	-v	Enable verbose mode
+	-h	Print this help message
+
+Where <command> is one of:
+	install
+		Install autohook hooks in the current git repository's .git
+		folder.
+	link-script <script-name> <hook-type> [<file-type>]
+		Create a symbolic link from the current repository's
+		hooks/scripts/<script-name> file to hooks/<hook-type>,
+		or hooks/<hook-type>/<file-type> if a file type (extension) is
+		specified.
+	run-hook <hook-type> [<file-type>]
+		Run all scripts for the given hook type. If the file type is not
+		specified, all scripts in hooks/<hook-type> will be executed. If
+		a file type is specified, all scripts in
+		hooks/<hook-type>/<file-type>
+	help
+		Show this help message
+
+Variables:
+	AUTOHOOK_DEBUG
+		Enable debug mode, which prints many logs.
+	AUTOHOOK_VERBOSE
+		Enable verbose mode. Same as -v option
+
+USAGE
+}
+
+
 main() {
     calling_file=$(basename "$0")
     echo_debug "called by '$calling_file'"
 
     if [ "$calling_file" == "autohook.sh" ]; then
+        while true; do
+            case "$1" in
+                '-vh' | '-hv')
+                    AUTOHOOK_VERBOSE=1
+                    usage "$@"
+                    exit 0
+                    ;;
+                '-h')
+                    echo_debug '[main] got -h option'
+                    usage "$@"
+                    exit 0
+                    ;;
+                '-v')
+                    echo_debug '[main] got -v option'
+                    AUTOHOOK_VERBOSE=1
+                    shift
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+        done
+
         command=$1
         echo_debug "called by autohook.sh, command is '$command'"
-        if [ "$command" == "install" ]; then
-            echo_debug "installing..."
-            install
-        elif [ "$command" == "link-script" ]; then
-            echo_debug 'linking script'
-            shift
-            link_script "$@"
-            exit $?
-        elif [ "$command" == "run-hook" ]; then
-            echo_debug 'running hook'
-            shift
-            run_hook "$@"
-        fi
+        case "$command" in
+            install)
+                echo_debug 'installing'
+                install
+                exit $?
+                ;;
+            link-script)
+                echo_debug 'linking script'
+                shift
+                link_script "$@"
+                exit $?
+                ;;
+            run-hook)
+                echo_debug 'running hook'
+                shift
+                run_hook "$@"
+                exit $?
+                ;;
+            help)
+                echo_debug 'showing usage'
+                usage "$@"
+                exit 0
+                ;;
+            *)
+                echo_error "Invalid command '$command'"
+                usage "$@"
+                exit 1
+                ;;
+        esac
+        exit $?
     else
         repo_root=$(repo_root)
         hook_type=$calling_file
