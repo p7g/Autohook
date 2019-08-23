@@ -103,6 +103,7 @@ link_script() {
     if [ "$extension" != '' ]; then
         target_path="$target_path/$extension"
     fi
+    source_path="$(realpath --canonicalize-missing --relative-to="$target_path" "$source_path")"
     target_path="$target_path/$script_name"
 
     mkdir -p "$(dirname "$target_path")"
