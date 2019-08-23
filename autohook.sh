@@ -82,8 +82,12 @@ install() {
     autohook_linktarget="../../.hooks/autohook.sh"
     for hook_type in "${hook_types[@]}"; do
         hook_symlink="$hooks_dir/$hook_type"
-        ln -s "$autohook_linktarget" "$hook_symlink"
-        echo_debug "[install] linked '$autohook_linktarget' to '$hook_symlink'"
+        if [ ! -f "$hook_symlink" ]; then
+            ln -s "$autohook_linktarget" "$hook_symlink"
+            echo_debug "[install] linked '$autohook_linktarget' to '$hook_symlink'"
+        else
+            echo_debug "[install] file exists at '$hook_symlink', not linking"
+        fi
     done
     echo_debug '[install] done'
 }
