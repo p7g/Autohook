@@ -48,7 +48,7 @@ repo_root() {
 
 
 hooks_dir() {
-    builtin echo "$(repo_root)/hooks"
+    builtin echo "$(repo_root)/.hooks"
 }
 
 
@@ -79,7 +79,7 @@ install() {
     echo_debug "[install] found repo_root '$repo_root'"
     hooks_dir="$repo_root/.git/hooks"
     echo_debug "[install] found hooks_dir '$hooks_dir'"
-    autohook_linktarget="../../hooks/autohook.sh"
+    autohook_linktarget="../../.hooks/autohook.sh"
     for hook_type in "${hook_types[@]}"; do
         hook_symlink="$hooks_dir/$hook_type"
         ln -s "$autohook_linktarget" "$hook_symlink"
@@ -94,7 +94,7 @@ uninstall() {
     echo_debug "[uninstall] found repo_root '$repo_root'"
     hooks_dir="$repo_root/.git/hooks"
     echo_debug "[uninstall] found hooks dir '$hooks_dir'"
-    autohook_linktarget='../../hooks/autohook.sh'
+    autohook_linktarget='../../.hooks/autohook.sh'
     for hook_type in "${hook_types[@]}"; do
         link_path="$hooks_dir/$hook_type"
         if [ "$(readlink "$link_path")" = "$autohook_linktarget" ]; then
