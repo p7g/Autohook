@@ -52,27 +52,29 @@ hooks_dir() {
 }
 
 
-install() {
-    hook_types=(
-        "applypatch-msg"
-        "commit-msg"
-        "post-applypatch"
-        "post-checkout"
-        "post-commit"
-        "post-merge"
-        "post-receive"
-        "post-rewrite"
-        "post-update"
-        "pre-applypatch"
-        "pre-auto-gc"
-        "pre-commit"
-        "pre-push"
-        "pre-rebase"
-        "pre-receive"
-        "prepare-commit-msg"
-        "update"
-    )
+hook_types=(
+    "applypatch-msg"
+    "commit-msg"
+    "post-applypatch"
+    "post-checkout"
+    "post-commit"
+    "post-merge"
+    "post-receive"
+    "post-rewrite"
+    "post-update"
+    "pre-applypatch"
+    "pre-auto-gc"
+    "pre-commit"
+    "pre-push"
+    "pre-rebase"
+    "pre-receive"
+    "prepare-commit-msg"
+    "update"
+)
 
+
+
+install() {
     repo_root=$(repo_root)
     echo_debug "[install] found repo_root '$repo_root'"
     hooks_dir="$repo_root/.git/hooks"
@@ -84,6 +86,23 @@ install() {
         echo_debug "[install] linked '$autohook_linktarget' to '$hook_symlink'"
     done
     echo_debug '[install] done'
+}
+
+
+uninstall() {
+    repo_root=$(repo_root)
+    echo_debug "[uninstall] found repo_root '$repo_root'"
+    hooks_dir="$repo_root/.git/hooks"
+    echo_debug "[uninstall] found hooks dir '$hooks_dir'"
+    autohook_linktarget='../../hooks/autohook.sh'
+    for hook_type in "${hook_types[@]}"; do
+        link_path="$hooks_dir/$hook_type"
+        if [ "$(readlink "$link_path")" = "$autohook_linktarget" ]; then
+            echo_debug "[uninstall] '$link_path' points to autohook, deleting"
+            rm "$link_path"
+        fi
+    done
+    echo_debug '[uninstall] done'
 }
 
 
@@ -228,6 +247,8 @@ Where <command> is one of:
 	install
 		Install autohook hooks in the current git repository's .git
 		folder.
+	uninstall
+		Delete all autohook links in the git hooks directory.
 	link-script <script-name> <hook-type> [<file-type>]
 		Create a symbolic link from the current repository's
 		hooks/scripts/<script-name> file to hooks/<hook-type>,
@@ -286,6 +307,10 @@ main() {
                 echo_debug 'installing'
                 install
                 exit $?
+                ;;
+            uninstall)
+                echo_debug 'uninstalling'
+                uninstall
                 ;;
             link-script)
                 echo_debug 'linking script'
