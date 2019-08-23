@@ -177,12 +177,13 @@ run_symlinks() {
             if [ "$hook_exit_code" != 0 ]; then
                 echo_error "$hook_type script '$scriptname' yielded negative exit code $hook_exit_code"
                 printf_error "Result:\n%s\n" "$result"
-                rm -rf "$autohook_fifo_dir"
-                exit $hook_exit_code
             fi
             echo_verbose "FINISH $scriptname"
         done
         rm -rf "$autohook_fifo_dir"
+        if [ "$hook_exit_code" -ne 0 ]; then
+            exit 1
+        fi
     fi
 }
 
