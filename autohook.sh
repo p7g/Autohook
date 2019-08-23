@@ -118,6 +118,24 @@ run_symlinks() {
         return
     fi
 
+    autohook_fifo_dir=$(mktemp -d "${TMPDIR:-.}/autohook_fifo_XXXX") || {
+        echo_error '[run_symlinks] failed to create temp fifo dir'
+        exit 1
+    }
+    autohook_stdout="$autohook_fifo_dir/stdout"
+    autohook_stderr="$autohook_fifo_dir/stderr"
+    mkfifo "$autohook_stdout" || {
+        echo_error '[run_symlinks] failed to create temp stdout fifo'
+        exit 1
+    }
+    mkfifo "$autohook_stderr" || {
+        echo_error '[run_symlinks] failed to create temp stderr fifo'
+        exit 1
+    }
+
+    tail -f "$autohook_stdout" > /dev/stdout &
+    tail -f "$autohook_stderr" > /dev/stderr &
+
     script_files=()
     while IFS='' read -r script_file; do
         script_files+=("$script_file")
@@ -142,7 +160,15 @@ run_symlinks() {
             scriptname=$(basename "$file")
             echo_verbose "BEGIN $scriptname"
             echo_debug "[run_symlinks] running '$file' with staged files '$accumulator'"
-            result=$(2>&1 AUTOHOOK_HOOK_TYPE="$hook_type" AUTOHOOK_STAGED_FILES=$accumulator AUTOHOOK_REPO_ROOT="$(repo_root)" $file)
+            result=$(
+                2>&1 \
+                AUTOHOOK_HOOK_TYPE="$hook_type" \
+                AUTOHOOK_STAGED_FILES=$accumulator \
+                AUTOHOOK_REPO_ROOT="$(repo_root)" \
+                AUTOHOOK_STDOUT="$autohook_stdout" \
+                AUTOHOOK_STDERR="$autohook_stderr" \
+                "$file"
+            )
             script_exit_code=$?
             if [ "$script_exit_code" != 0 ]; then
                 echo_debug "[run_symlinks] script exited with $script_exit_code"
@@ -151,10 +177,12 @@ run_symlinks() {
             if [ "$hook_exit_code" != 0 ]; then
                 echo_error "$hook_type script '$scriptname' yielded negative exit code $hook_exit_code"
                 printf_error "Result:\n%s\n" "$result"
+                rm -rf "$autohook_fifo_dir"
                 exit $hook_exit_code
             fi
             echo_verbose "FINISH $scriptname"
         done
+        rm -rf "$autohook_fifo_dir"
     fi
 }
 
