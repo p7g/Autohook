@@ -118,13 +118,13 @@ link_script() {
         return 1
     fi
 
-    script_dir="$(hooks_dir)/scripts"
+    script_dir="../scripts"
     source_path="$script_dir/$script_name"
     target_path="$(hooks_dir)/$hook_type"
     if [ "$extension" != '' ]; then
         target_path="$target_path/$extension"
+        source_path="../$source_path"
     fi
-    source_path="$(realpath --canonicalize-missing --relative-to="$target_path" "$source_path")"
     target_path="$target_path/$script_name"
 
     mkdir -p "$(dirname "$target_path")"
