@@ -56,9 +56,12 @@ Here's the overview of steps:
 5. Make directories for your hook types (e.g., `mkdir -p hooks/post-checkout
    hooks/pre-commit`).
 6. Symlink your scripts to the correct directories, using numbers in symlink
-   names to enforce execution order (e.g., `ln -s
-   hooks/scripts/delete-pyc-files.sh hooks/post-checkout/01-delete-pyc-files`,
-   etc.).
+	 names to enforce execution order. Note that your system may require symlinks
+	 to be relative to the link. Use full absolute paths (e.g., `ln -s
+	 $PWD/hooks/scripts/delete-pyc-files.sh
+	 $PWD/hooks/post-checkout/01-delete-pyc-files`, etc.). Or use relative paths
+	 (e.g., `cd hooks/post-checkout && ln -s ../scripts/delete-pyc-files.sh
+	 01-delete-pyc-files`)
 
 The result should be a tree that looks something like this:
 
