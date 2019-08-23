@@ -2,9 +2,7 @@
 
 # Autohook
 # A very, very small Git hook manager with focus on automation
-# Author:   Nik Kantar <http://nkantar.com>
-# Version:  2.1.1
-# Website:  https://github.com/nkantar/Autohook
+# Website:  https://github.com/p7g/Autohook
 
 
 echo() {
