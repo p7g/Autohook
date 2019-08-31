@@ -195,7 +195,7 @@ USAGE
 
 main() {
     calling_file=$(basename "$0")
-    trap 'kill -- -$$' SIGINT SIGTERM EXIT
+    trap '>/dev/null 2>&1 kill -- -$$ || :' SIGINT SIGTERM EXIT
     echo_debug "called by '$calling_file'"
     if [ "$calling_file" == "autohook.sh" ]; then
         if [ "$1" = '-h' ]; then
