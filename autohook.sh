@@ -195,7 +195,7 @@ USAGE
 
 main() {
     calling_file=$(basename "$0")
-    trap '{ jobs -p | xargs kill; } >/dev/null 2>&1' SIGINT SIGTERM EXIT
+    trap '{ jobs -p | xargs kill; } >/dev/null' SIGINT SIGTERM EXIT
     echo_debug "called by '$calling_file'"
     if [ "$calling_file" == "autohook.sh" ]; then
         if [ "$1" = '-h' ]; then
