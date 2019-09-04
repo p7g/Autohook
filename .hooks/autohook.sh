@@ -1,1 +1,1 @@
-/Users/patrick/code/autohook/autohook.sh
+../autohook.sh
