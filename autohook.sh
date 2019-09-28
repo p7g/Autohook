@@ -74,11 +74,11 @@ run_symlinks() {
         return
     fi
 
-    echo_debug "[run_symlinks] making temp fifo dir"
     autohook_fifo_dir=$(mktemp -d "${TMPDIR:-.}/autohook_fifo_XXXX") || {
         echo_error '[run_symlinks] failed to create temp fifo dir'
         return 1
     }
+    echo_debug "[run_symlinks] made temp fifo dir '$autohook_fifo_dir'"
     autohook_stdout="$autohook_fifo_dir/stdout"
     autohook_stderr="$autohook_fifo_dir/stderr"
     if ! mkfifo "$autohook_stdout" || ! mkfifo "$autohook_stderr"; then
@@ -104,9 +104,9 @@ run_symlinks() {
         number_of_symlinks=0
     fi
     echo_verbose "Found $number_of_symlinks scripts"
+    hook_exit_code=0
     if [ "$number_of_symlinks" -gt 0 ]; then
         echo_debug '[run_symlinks] had symlinks, running scripts'
-        hook_exit_code=0
         for file in "${script_files[@]}"; do
             echo_verbose "BEGIN $file"
             echo_debug "[run_symlinks] running '$file' with staged files '$accumulator'"
@@ -130,12 +130,12 @@ run_symlinks() {
             fi
             echo_verbose "FINISH $file"
         done
-
-        if [ "$hook_exit_code" -ne 0 ]; then
-            exit 1
-        fi
     fi
     rm -rf "$autohook_fifo_dir"
+
+    if [ "$hook_exit_code" -ne 0 ]; then
+        exit 1
+    fi
 }
 
 run_hook() {
