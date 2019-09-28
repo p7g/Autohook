@@ -74,6 +74,7 @@ run_symlinks() {
         return
     fi
 
+    echo_debug "[run_symlinks] making temp fifo dir"
     autohook_fifo_dir=$(mktemp -d "${TMPDIR:-.}/autohook_fifo_XXXX") || {
         echo_error '[run_symlinks] failed to create temp fifo dir'
         return 1
@@ -83,6 +84,7 @@ run_symlinks() {
     if ! mkfifo "$autohook_stdout" || ! mkfifo "$autohook_stderr"; then
         echo_error '[run_symlinks] failed to create temp stderr or stdout fifo'
         rm "$autohook_stdout" "$autohook_stderr"
+        rmdir "$autohook_fifo_dir"
         return 1
     fi
     tail -f -n +1 "$autohook_stdout" >&1 &
@@ -128,11 +130,12 @@ run_symlinks() {
             fi
             echo_verbose "FINISH $file"
         done
-        rm -rf "$autohook_fifo_dir"
+
         if [ "$hook_exit_code" -ne 0 ]; then
             exit 1
         fi
     fi
+    rm -rf "$autohook_fifo_dir"
 }
 
 run_hook() {
