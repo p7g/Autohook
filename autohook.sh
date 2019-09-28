@@ -85,8 +85,8 @@ run_symlinks() {
         rm "$autohook_stdout" "$autohook_stderr"
         return 1
     fi
-    tail -f -n +1 "$autohook_stdout" > /dev/stdout &
-    tail -f -n +1 "$autohook_stderr" > /dev/stderr &
+    tail -f -n +1 "$autohook_stdout" >&1 &
+    tail -f -n +1 "$autohook_stderr" >&2 &
 
     script_files=()
     while IFS='' read -r script_file; do
