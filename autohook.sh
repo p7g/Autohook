@@ -91,7 +91,7 @@ run_symlinks() {
     script_files=()
     while IFS='' read -r script_file; do
         script_files+=("$script_file")
-    done < <(find "$1" \( -type f -o -type l \) -maxdepth 1 | sort)
+    done < <(find "$1" -maxdepth 1 \( -type f -o -type l \) | sort)
 
     hook_type=$2
     accumulator=$3
